@@ -47,8 +47,8 @@ convert(::Type{UTF8String}, s::UTF16String) =
 function test_utf16()
     u8 = "𝕥𝟶f𠂊"
     u16 = utf16(u8)
-    @assert length(u16) == 7
-    @assert strlen(u16) == 4
+    @assert length(u16.data) == 7
+    @assert length(u16) == 4
     @assert utf8(u16) == u8
 end
 
