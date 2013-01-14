@@ -1,19 +1,14 @@
 module UTF16
-using Base
 
-import Base.convert, Base.length, Base.next
+export UTF16String, utf16
 
-export UTF16String,
-       convert,
-       length,
-       next,
-       utf16
+import Base.convert, Base.endof, Base.next
 
 type UTF16String <: String
     data::Array{Uint16,1}
 end
 
-length(s::UTF16String) = length(s.data)
+endof(s::UTF16String) = thisind(s,length(s.data))
 
 utf16_is_lead(c::Uint16) = (c & 0xfc00) == 0xd800
 utf16_is_trail(c::Uint16) = (c & 0xfc00) == 0xdc00
@@ -29,28 +24,25 @@ function next(s::UTF16String, i::Int)
     error("invalid UTF-16 character index")
 end
 
+# TODO: optmize this
 function encode16(s::String)
-    buf = Array(Uint16, length(s))
-    n = 0
+    buf = Uint16[]
     for c in s
         if c < 0x10000
-            n += 1
-            buf[n] = uint16(c)
+            push!(buf, uint16(c))
         else
-            n += 1
-            buf[n] = uint16(0xd7c0 + (c>>10) & 0x3ff)
-            n += 1
-            buf[n] = uint16(0xdc00 + c & 0x3ff)
+            push!(buf, uint16(0xd7c0 + (c>>10) & 0x3ff))
+            push!(buf, uint16(0xdc00 + c & 0x3ff))
         end
     end
-    return UTF16String(buf[1:n])
+    UTF16String(buf)
 end
 
 utf16(x) = convert(UTF16String, x)
 convert(::Type{UTF16String}, s::UTF16String) = s
 convert(::Type{UTF16String}, s::String) = encode16(s)
 convert(::Type{UTF8String}, s::UTF16String) =
-    sprint(length(s), io->for c in s; write(io,c::Char); end)
+    sprint(length(s.data), io->for c in s; write(io,c::Char); end)
 
 function test_utf16()
     u8 = "𝕥𝟶f𠂊"
