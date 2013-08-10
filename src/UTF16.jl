@@ -4,7 +4,7 @@ export UTF16String, utf16
 
 import Base.convert, Base.endof, Base.next
 
-type UTF16String <: String
+immutable UTF16String <: String
     data::Array{Uint16,1}
 end
 
